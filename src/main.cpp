@@ -59,7 +59,7 @@ f32 clamp(f32 a, f32 b)
     }
 }
 
-#define ratio 1.0 / 2.2
+#define ratio 1.0 / 4.0
 v3 gammaCorrect(v3 color)
 {
     v3 b = {};
