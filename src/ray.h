@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include <stdlib.h>
 #include <float.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef char unsigned u8;
 typedef short unsigned u16;
@@ -16,7 +16,6 @@ typedef float f32;
 #define f32Max FLT_MAX
 
 #include "v3.h"
-
 
 #pragma pack(push, 1)
 struct BitmapHeader {
@@ -39,36 +38,31 @@ struct BitmapHeader {
 };
 #pragma pack(pop)
 
-struct Image
-{
+struct Image {
     u32 width;
     u32 height;
     u32 *pixels;
 };
 
-struct Material
-{
+struct Material {
     f32 scatter;
     v3 emitColor;
     v3 refColor;
 };
 
-struct Plane
-{
+struct Plane {
     v3 N;
     f32 d;
     u32 matIndex;
 };
 
-struct Sphere
-{
+struct Sphere {
     v3 P;
     f32 r;
     u32 matIndex;
 };
 
-struct World
-{
+struct World {
     u32 materialCount;
     Material *materials;
 

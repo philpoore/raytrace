@@ -1,7 +1,6 @@
 #include "ray.h"
 
-Image newImage(u32 width, u32 height)
-{
+Image newImage(u32 width, u32 height) {
     Image myImage;
 
     u32 numPixels = sizeof(u32) * width * height;
@@ -14,8 +13,7 @@ Image newImage(u32 width, u32 height)
     return myImage;
 }
 
-void writeImage(Image image, char *filename)
-{
+void writeImage(Image image, char *filename) {
     u32 sizeImage = image.width * image.height * sizeof(32);
     BitmapHeader bitmapHeader = {};
 
@@ -35,33 +33,25 @@ void writeImage(Image image, char *filename)
     bitmapHeader.ColorsImportant = 0;
 
     FILE *file = fopen(filename, "wb");
-    if (file)
-    {
+    if (file) {
         fwrite(&bitmapHeader, sizeof(bitmapHeader), 1, file);
         fwrite(image.pixels, sizeImage, 1, file);
         fclose(file);
     }
 }
 
-f32 clamp(f32 a, f32 b)
-{
-    if (a < 0)
-    {
+f32 clamp(f32 a, f32 b) {
+    if (a < 0) {
         return 0;
-    }
-    else if (a > b)
-    {
+    } else if (a > b) {
         return b;
-    }
-    else
-    {
+    } else {
         return a;
     }
 }
 
 #define ratio 1.0 / 4.0
-v3 gammaCorrect(v3 color)
-{
+v3 gammaCorrect(v3 color) {
     v3 b = {};
     b.x = pow(color.x, ratio);
     b.y = pow(color.y, ratio);
@@ -70,8 +60,7 @@ v3 gammaCorrect(v3 color)
     return b;
 }
 
-u32 v3toRGBpacked(v3 color)
-{
+u32 v3toRGBpacked(v3 color) {
     u32 result = (((u32)clamp((255.0 * color.x), 255.0) << 16) +
                   ((u32)clamp((255.0 * color.y), 255.0) << 8) +
                   ((u32)clamp((255.0 * color.z), 255.0)));
@@ -79,18 +68,11 @@ u32 v3toRGBpacked(v3 color)
     return result;
 }
 
-f32 randLateral()
-{
-    return (f32)rand() / (f32)RAND_MAX;
-}
+f32 randLateral() { return (f32)rand() / (f32)RAND_MAX; }
 
-f32 randBiLateral()
-{
-    return 2.0 * randLateral() - 1.0;
-}
+f32 randBiLateral() { return 2.0 * randLateral() - 1.0; }
 
-v3 randomSample()
-{
+v3 randomSample() {
     v3 a;
     a.x = randBiLateral();
     a.y = randBiLateral();
@@ -98,8 +80,7 @@ v3 randomSample()
     return a;
 }
 
-v3 rayCast(World *world, v3 rayO, v3 rayD)
-{
+v3 rayCast(World *world, v3 rayO, v3 rayD) {
     // printf("rayO %g %g %g\n", rayO.x, rayO.y, rayO.z);
     // printf("rayD %g %g %g\n", rayD.x, rayD.y, rayD.z);
 
@@ -109,8 +90,7 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
 
     f32 tolerance = 0.00001f;
 
-    for (u32 rayCount = 0; rayCount < 16; rayCount++)
-    {
+    for (u32 rayCount = 0; rayCount < 16; rayCount++) {
 
         u32 hitMatIndex = 0;
         f32 minDistance = 0.001f;
@@ -119,19 +99,16 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
         v3 nextOrigin = {};
         // printf("hitDistance %g\n", hitDistance);
 
-        for (u32 i = 0; i < world->planeCount; i++)
-        {
+        for (u32 i = 0; i < world->planeCount; i++) {
             Plane plane = world->planes[i];
 
             // plane intersects line
             f32 denom = dot(plane.N, rayD);
 
             // exit(1);
-            if ((denom < -tolerance) || (denom > tolerance))
-            {
+            if ((denom < -tolerance) || (denom > tolerance)) {
                 f32 t = (-plane.d - dot(plane.N, rayO)) / denom;
-                if (t > minDistance && t < hitDistance)
-                {
+                if (t > minDistance && t < hitDistance) {
                     // printf("denom %d, %g %g\n", i, denom, distance);
                     hitDistance = t;
                     hitMatIndex = plane.matIndex;
@@ -142,8 +119,7 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
             }
         }
 
-        for (u32 i = 0; i < world->sphereCount; i++)
-        {
+        for (u32 i = 0; i < world->sphereCount; i++) {
             Sphere sphere = world->spheres[i];
 
             v3 sphereLocalOrigin = subtract(rayO, sphere.P);
@@ -151,23 +127,21 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
 
             f32 a = dot(rayD, rayD);
             f32 b = 2.0 * dot(sphereLocalOrigin, rayD);
-            f32 c = dot(sphereLocalOrigin, sphereLocalOrigin) - sphere.r * sphere.r;
+            f32 c =
+                dot(sphereLocalOrigin, sphereLocalOrigin) - sphere.r * sphere.r;
 
             f32 denom = 2.0 * a;
             f32 rootTerm = sqrt(b * b - 4.0 * a * c);
-            if (rootTerm > tolerance)
-            {
+            if (rootTerm > tolerance) {
                 f32 tp = (-b + rootTerm) / denom;
                 f32 tn = (-b - rootTerm) / denom;
 
                 f32 t = tp;
-                if (tn > minDistance && tn < tp)
-                {
+                if (tn > minDistance && tn < tp) {
                     t = tn;
                 }
 
-                if (t > minDistance && t < hitDistance)
-                {
+                if (t > minDistance && t < hitDistance) {
                     // printf("denom %d, %g %g\n", i, denom, t);
                     hitDistance = t;
                     hitMatIndex = sphere.matIndex;
@@ -178,8 +152,7 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
             }
         }
 
-        if (hitMatIndex)
-        {
+        if (hitMatIndex) {
             Material mat = world->materials[hitMatIndex];
 
             // result = mat.refColor;
@@ -187,29 +160,25 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
 
             // f32 cosAtten = 1.0;
             f32 cosAtten = dot(subtract(V3(0, 0, 0), rayD), nextNormal);
-            if (cosAtten < 0)
-            {
+            if (cosAtten < 0) {
                 cosAtten = 0;
             }
 
-            // printf("%d: %f %f %f\n", hitMatIndex, attenuation.x, attenuation.y, attenuation.z);
-            attenuation = multiply(attenuation, multiply(cosAtten, mat.refColor));
+            // printf("%d: %f %f %f\n", hitMatIndex, attenuation.x,
+            // attenuation.y, attenuation.z);
+            attenuation =
+                multiply(attenuation, multiply(cosAtten, mat.refColor));
 
             rayO = nextOrigin;
 
             // reflection
             v3 pureBounce = subtract(
-                rayD,
-                multiply(
-                    2.0 * dot(rayD, nextNormal),
-                    nextNormal));
+                rayD, multiply(2.0 * dot(rayD, nextNormal), nextNormal));
 
             v3 randomBounce = noz(add(nextNormal, randomSample()));
 
             rayD = noz(lerp(randomBounce, pureBounce, mat.scatter));
-        }
-        else
-        {
+        } else {
             Material mat = world->materials[0];
             result = add(result, multiply(attenuation, mat.emitColor));
 
@@ -220,34 +189,28 @@ v3 rayCast(World *world, v3 rayO, v3 rayD)
     return result;
 }
 
-f32 LinearToSRGB(f32 L)
-{
-    if (L < 0.0)
-    {
+f32 LinearToSRGB(f32 L) {
+    if (L < 0.0) {
         // printf(".");
         L = 0.0;
     }
-    if (L > 1.0)
-    {
+    if (L > 1.0) {
         // printf("x");
         L = 1.0;
     }
     // printf("o");
 
     f32 S = L * 12.92;
-    if (L >= 0.0031308)
-    {
+    if (L >= 0.0031308) {
         S = 1.055 * (f32)pow(L, 0.41666666) - 0.55;
     }
     return S;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     char *outputImageFilename = "image.bmp";
 
-    if (argc >= 2)
-    {
+    if (argc >= 2) {
         outputImageFilename = argv[1];
     }
 
@@ -333,12 +296,9 @@ int main(int argc, char **argv)
     f32 filmW = 1.0;
     f32 filmH = 1.0;
 
-    if (image.width > image.height)
-    {
+    if (image.width > image.height) {
         filmH = filmW * ((f32)image.height / (f32)image.width);
-    }
-    else if (image.height > image.width)
-    {
+    } else if (image.height > image.width) {
         filmW = filmH * ((f32)image.width / (f32)image.height);
     }
 
@@ -353,25 +313,19 @@ int main(int argc, char **argv)
     v3 filmCenter = subtract(cameraP, multiply(filmDist, cameraZ));
 
     u32 *Out = image.pixels;
-    for (u32 y = 0; y < image.height; y++)
-    {
+    for (u32 y = 0; y < image.height; y++) {
         f32 filmY = -1.0 + 2.0 * (((f32)y) / image.height);
-        for (u32 x = 0; x < image.width; x++)
-        {
+        for (u32 x = 0; x < image.width; x++) {
             f32 filmX = -1.0 + 2.0 * (((f32)x) / image.width);
 
             v3 color = {};
-            for (int rayIndex = 0; rayIndex < raysPerPixel; rayIndex++)
-            {
+            for (int rayIndex = 0; rayIndex < raysPerPixel; rayIndex++) {
                 f32 offX = filmX + randBiLateral() * halfPixelW;
                 f32 offY = filmY + randBiLateral() * halfPixelH;
 
                 v3 filmP =
-                    add(
-                        filmCenter,
-                        add(
-                            multiply(offY * halfFilmH, cameraY),
-                            multiply(offX * halfFilmW, cameraX)));
+                    add(filmCenter, add(multiply(offY * halfFilmH, cameraY),
+                                        multiply(offX * halfFilmW, cameraX)));
 
                 v3 rayO = cameraP;
                 v3 rayD = noz(subtract(filmP, cameraP));

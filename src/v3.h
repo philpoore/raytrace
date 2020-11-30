@@ -6,7 +6,6 @@ struct v3 {
     f32 z;
 };
 
-
 v3 V3(f32 x, f32 y, f32 z);
 
 v3 add(v3 a, v3 b);
